@@ -4,6 +4,7 @@
 # http://hp.vector.co.jp/authors/VA046927/mjscore/ptn.rb
 
 # 順列生成
+# 排列生成
 class Array
   def perms
     return [[]] if empty?
@@ -26,8 +27,10 @@ def ptn(a)
   end
   ret = Array.new
   # 重ならないパターン
+  # 不重叠的模式
   ret += a.perms
   # 重なるパターン
+  # 重叠的模式
   h1 = Hash.new
   for i in 0..a.size - 1
     for j in i + 1..a.size - 1
@@ -36,25 +39,32 @@ def ptn(a)
         h1.store(key, nil)
         h2 = Hash.new
         # a[i]とa[j]を範囲をずらしながら重ねる
+        # 将a[i]与a[j]通过偏移范围进行重叠
         for k in 0..a[i].size + a[j].size
           t = [0] * a[j].size + a[i] + [0] * a[j].size
           for m in 0..a[j].size - 1
             t[k + m] += a[j][m]
           end
           # 余分な0を取り除く
+          # 去除多余的0
           t.delete(0)
           # 4より大きい値がないかチェック
+          # 检查是否存在大于4的值
           next if t.any? {|v| v > 4}
           # 9より長くないかチェック
+          # 检查长度是否超过9
           next if t.size > 9
           # 重複チェック
+          # 重复检查
           if !h2.key?(t.to_s) then
             h2.store(t.to_s, nil)
             # 残り
+            # 剩余部分
             t2 = a.dup
             t2.delete_at(i)
             t2.delete_at(j - 1)
             # 再帰呼び出し
+            # 递归调用
             ret += ptn([t] + t2)
           end
         end
@@ -65,6 +75,7 @@ def ptn(a)
 end
 
 # キー値を計算
+# 计算键值
 def calc_key(a)
   ret = 0
   len = -1
@@ -99,19 +110,21 @@ end
 #   4bit 14: 面子の位置２(0～13)
 #   4bit 18: 面子の位置３(0～13)
 #   4bit 22: 面子の位置４(0～13)
-#   1bit 26: 七対子フラグ
-#   1bit 27: 九蓮宝燈フラグ
-#   1bit 28: 一気通貫フラグ
-#   1bit 29: 二盃口フラグ
-#   1bit 30: 一盃口フラグ
+#   1bit 26: 七対子flag
+#   1bit 27: 九蓮宝燈flag
+#   1bit 28: 一気通貫flag
+#   1bit 29: 二盃口flag
+#   1bit 30: 一盃口flag
 def find_hai_pos(a)
   ret_array = Array.new
   p_atama = 0
   for i in 0..a.size - 1
     for j in 0..a[i].size - 1
       # 頭を探す
+      # 查找雀头
       if a[i][j] >= 2 then
         # 刻子、順子の優先順位入れ替え
+        # 切换刻子与顺子的优先级
         for kotsu_shuntus in 0..1
           t = Marshal.load(Marshal.dump(a))
           t[i][j] -= 2
@@ -123,6 +136,7 @@ def find_hai_pos(a)
             for m in 0..t[k].size - 1
               if kotsu_shuntus == 0 then
                 # 刻子を先に取り出す
+                # 优先提取刻子
                 # 刻子
                 if t[k][m] >= 3 then
                   t[k][m] -= 3
@@ -140,6 +154,7 @@ def find_hai_pos(a)
                 end
               else
                 # 順子を先に取り出す
+                # 优先提取顺子
                 # 順子
                 while t[k].size - m >= 3 &&
                     t[k][m] >= 1 &&
@@ -161,8 +176,10 @@ def find_hai_pos(a)
           end
 
           # 上がりの形か？
+          # 是否为胡牌形态？
           if t.flatten.all? {|x| x == 0} then
             # 値を求める
+            # 计算值
             ret = p_kotsu.size + (p_shuntsu.size << 3) + (p_atama << 6)
             len = 10
             for x in p_kotsu
@@ -174,7 +191,7 @@ def find_hai_pos(a)
               len += 4
             end
             if a.size == 1 then
-              # 九蓮宝燈フラグ
+              # 九蓮宝燈flag
               if a == [[4, 1, 1, 1, 1, 1, 1, 1, 3]] ||
                   a == [[3, 2, 1, 1, 1, 1, 1, 1, 3]] ||
                   a == [[3, 1, 2, 1, 1, 1, 1, 1, 3]] ||
